@@ -3,9 +3,6 @@
 // UI Components
 import { Switch } from "@/components/ui/switch";
 
-// React
-import { useEffect, useState } from "react";
-
 // React Query
 import {
   useNotificationSettings,
@@ -13,22 +10,8 @@ import {
 } from "@/hooks/useNotificationSettings";
 
 export default function Notifications() {
-  const [settings, setSettings] = useState<Record<string, any>>({});
-  const { data, isLoading } = useNotificationSettings();
+  const { data: settings, isLoading } = useNotificationSettings();
   const mutation = useUpdateNotificationSettings();
-
-  // Fetch Notifications Settings API
-  const fetchNotifications = async () => {
-    try {
-      setSettings(data || {});
-    } catch (error) {
-      console.error("Failed to fetch notifications", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [isLoading]);
 
   // Update Notifications Settings API
   const updateNotificationAPI = async (
@@ -36,30 +19,17 @@ export default function Notifications() {
     key: string,
     value: boolean,
   ) => {
-    // Optimistic update
-    setSettings((prev: any) => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        settings: {
-          ...prev[category]?.settings,
-          [key]: value,
-        },
-      },
-    }));
-
     try {
       // API wait the data as key value
       const payload = { [key]: value ? 1 : 0 };
       await mutation.mutateAsync(payload);
     } catch (error) {
       console.error("Failed to update notifications", error);
-      fetchNotifications(); // Revert on error
     }
   };
 
   const getSetting = (category: string, key: string) => {
-    return settings[category]?.settings?.[key];
+    return settings?.[category]?.settings?.[key];
   };
 
   return (
