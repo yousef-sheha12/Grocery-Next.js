@@ -7,6 +7,8 @@ import CartSummary from '@/app/checkout/components/CartSummary';
 import BillingAddress from './components/BillingAddress';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 interface SavedCard {
   id: string;
   brand?: string;
