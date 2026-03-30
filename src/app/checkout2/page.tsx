@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { Steps } from '@/components/checkout/Steps';
 import { PaymentMethods } from '@/components/checkout/PaymentMethods';
 import CartSummary from '@/app/checkout/components/CartSummary';
 import BillingAddress from './components/BillingAddress';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-export const dynamic = 'force-dynamic';
+import { useState, useEffect } from 'react';
 
 interface SavedCard {
   id: string;
@@ -34,26 +33,25 @@ interface Checkout2PageProps {
   }) => Promise<void>;
 }
 
-export default function CheckoutPage2({
+function CheckoutContent({
   savedCards = [],
-  deliveryAddress: propDeliveryAddress = '',
   onConfirmPayment,
   cardsLoading = false,
   onAddCard,
 }: Checkout2PageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Get shipping address from query params
+
   const shippingAddress = searchParams.get('address') || '';
   const shippingCity = searchParams.get('city') || '';
   const shippingCountry = searchParams.get('country') || '';
   const shippingPostalCode = searchParams.get('postalCode') || '';
   const specialNotes = searchParams.get('specialNotes') || '';
-  
-  const fullShippingAddress = shippingAddress 
+
+  const fullShippingAddress = shippingAddress
     ? `${shippingAddress}, ${shippingCity}, ${shippingCountry} ${shippingPostalCode}`.trim()
     : '';
+
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash_on_delivery'>('cash_on_delivery');
   const [selectedMethodId, setSelectedMethodId] = useState<string>('cash');
   const [billingSameAsDelivery, setBillingSameAsDelivery] = useState(false);
@@ -96,7 +94,6 @@ export default function CheckoutPage2({
     <div className="max-w-6xl mx-auto p-6 bg-gray-50/30 min-h-screen">
       <Steps currentStep={2} />
 
-      {/* Special Delivery Notes Display */}
       {specialNotes && (
         <div className="max-w-6xl mx-auto mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm font-semibold text-amber-800 mb-1">Special Delivery Notes</p>
@@ -141,5 +138,13 @@ export default function CheckoutPage2({
         </button>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage2(props: Checkout2PageProps) {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto p-6">Loading...</div>}>
+      <CheckoutContent {...props} />
+    </Suspense>
   );
 }
