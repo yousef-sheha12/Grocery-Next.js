@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { editAddressSchema } from "@/lib/schemas/addresseSchema";
+import { addAddressSchema as editAddressSchema } from "@/lib/schemas/addresseSchema";
 import { useUpdateAddress } from "@/hooks/addresses/useAddresses";
 
 export default function EditDialog({ open, setOpen, address }: any) {
