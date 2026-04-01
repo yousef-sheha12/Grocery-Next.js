@@ -36,8 +36,7 @@ export default function EditDialog({ open, setOpen, address }: any) {
 
   const onSubmit = async (data: z.infer<typeof editAddressSchema>) => {
     try {
-      await updateAddress({ id: address.id, data });
-      setOpen(false);
+      await updateAddress({ id: address.id, data: data as any });
     } catch (error) {
       console.error("Failed to update address:", error);
     }
