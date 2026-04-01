@@ -19,17 +19,25 @@ export default function SlideProduct({ meals }: { meals: { meals: Meal[] } }) {
     }
   };
 
-  const filteredMeals = meals?.meals?.filter((meal: Meal) =>
-    !meal?.title?.toLowerCase().includes("marwa") &&
-    !meal?.brand?.toLowerCase().includes("marwa") &&
-    !meal?.vendor?.toLowerCase().includes("marwa")
-  ).sort((a: Meal, b: Meal) => {
-    const aIsChocolate = a?.title?.toLowerCase().includes("choclate") || a?.title?.toLowerCase().includes("chocolate");
-    const bIsChocolate = b?.title?.toLowerCase().includes("choclate") || b?.title?.toLowerCase().includes("chocolate");
-    if (aIsChocolate && !bIsChocolate) return 1;
-    if (!aIsChocolate && bIsChocolate) return -1;
-    return 0;
-  }) || [];
+  const filteredMeals =
+    meals?.meals
+      ?.filter(
+        (meal: Meal) =>
+          !meal?.title?.toLowerCase().includes("marwa") &&
+          !meal?.brand?.toLowerCase().includes("marwa") &&
+          !meal?.vendor?.toLowerCase().includes("marwa"),
+      )
+      .sort((a: Meal, b: Meal) => {
+        const aIsChocolate =
+          a?.title?.toLowerCase().includes("choclate") ||
+          a?.title?.toLowerCase().includes("chocolate");
+        const bIsChocolate =
+          b?.title?.toLowerCase().includes("choclate") ||
+          b?.title?.toLowerCase().includes("chocolate");
+        if (aIsChocolate && !bIsChocolate) return 1;
+        if (!aIsChocolate && bIsChocolate) return -1;
+        return 0;
+      }) || [];
 
   const hasEnoughItems = filteredMeals.length >= 4;
 
@@ -58,14 +66,12 @@ export default function SlideProduct({ meals }: { meals: { meals: Meal[] } }) {
               <div key={meal.id} className="min-w-full sm:min-w-[304px] h-full">
                 <CardProductC
                   product={{
-                    id: meal.id,
-                    link: meal.id,
+                    link: String(meal.id),
                     title: meal.title.replace(/Choclate/g, "Chocolate"),
                     image: meal.image_url,
-                    price: meal.final_price,
-                    originalPrice: meal.price,
-                    rating: meal.rating,
-                    isOffer: meal.has_offer,
+                    price: meal.final_price ?? 0,
+                    originalPrice: meal.price ?? 0,
+                    rating: meal.rating ?? 0,
                     discount: discount.toFixed(),
                     inStock: meal.in_stock,
                   }}

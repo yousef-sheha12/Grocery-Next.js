@@ -31,7 +31,11 @@ export default function HotDeal() {
 
   // Get unique categories from meals data
   const categories: string[] = meals?.meals
-    ? [...new Set(meals.meals.map((meal: Meal) => meal.category?.name).filter(Boolean))] as string[]
+    ? ([
+        ...new Set(
+          meals.meals.map((meal: Meal) => meal.category?.name).filter(Boolean),
+        ),
+      ] as string[])
     : [];
 
   // Filter meals by category
@@ -66,22 +70,30 @@ export default function HotDeal() {
         {isLoading ? (
           <p>Loading...</p>
         ) : (
-          data?.filter((meal: Meal) =>
-            !meal?.title?.toLowerCase().includes("marwa") &&
-            !meal?.brand?.toLowerCase().includes("marwa") &&
-            !meal?.vendor?.toLowerCase().includes("marwa")
-          ).sort((a: Meal, b: Meal) => {
-            const aIsChocolate = a?.title?.toLowerCase().includes("choclate") || a?.title?.toLowerCase().includes("chocolate");
-            const bIsChocolate = b?.title?.toLowerCase().includes("choclate") || b?.title?.toLowerCase().includes("chocolate");
-            if (aIsChocolate && !bIsChocolate) return 1;
-            if (!aIsChocolate && bIsChocolate) return -1;
-            return 0;
-          }).map((meal: Meal, index: number) => (
+          data
+            ?.filter(
+              (meal: Meal) =>
+                !meal?.title?.toLowerCase().includes("marwa") &&
+                !meal?.brand?.toLowerCase().includes("marwa") &&
+                !meal?.vendor?.toLowerCase().includes("marwa"),
+            )
+            .sort((a: Meal, b: Meal) => {
+              const aIsChocolate =
+                a?.title?.toLowerCase().includes("choclate") ||
+                a?.title?.toLowerCase().includes("chocolate");
+              const bIsChocolate =
+                b?.title?.toLowerCase().includes("choclate") ||
+                b?.title?.toLowerCase().includes("chocolate");
+              if (aIsChocolate && !bIsChocolate) return 1;
+              if (!aIsChocolate && bIsChocolate) return -1;
+              return 0;
+            })
+            .map((meal: Meal, index: number) => (
               <CardProductA
                 key={index}
                 title={meal.title.replace(/Choclate/g, "Chocolate")}
                 image_url={meal.image_url}
-                category={meal.category.name}
+                category={meal.category?.name ?? ""}
                 rating={meal.rating}
                 rating_count={meal.rating_count}
                 brand={meal.brand}
@@ -90,7 +102,7 @@ export default function HotDeal() {
                 link={meal.id as string}
                 in_stock={meal.in_stock as boolean}
               />
-          ))
+            ))
         )}
       </div>
     </Container>

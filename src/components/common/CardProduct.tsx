@@ -12,19 +12,19 @@ import { useCartStore } from "@/lib/cartStore";
 // Helper to validate and fix image URLs
 function getValidImageUrl(url: string | null | undefined): string {
   if (!url) return noImage.src;
-  
+
   // If it's already a full URL, return it
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  
+
   // If it's a relative path starting with /, prepend the base URL
-  if (url.startsWith('/')) {
-    return `${process.env.NEXT_PUBLIC_BASE_URL || ''}${url}`;
+  if (url.startsWith("/")) {
+    return `${process.env.NEXT_PUBLIC_BASE_URL || ""}${url}`;
   }
-  
+
   // Otherwise assume it's a relative path without /
-  return `${process.env.NEXT_PUBLIC_BASE_URL || ''}/${url}`;
+  return `${process.env.NEXT_PUBLIC_BASE_URL || ""}/${url}`;
 }
 
 export interface CardProductAProps {
@@ -62,7 +62,6 @@ export function CardProductA({
 
   return (
     <div className="bg-white w-full sm:w-[225px] flex flex-col h-full items-start border border-slate-200 hover:border-[#014162]/30 hover:shadow-xl transition-all duration-300 p-4 relative rounded-xl group">
-
       <div className="relative w-full h-[180px] bg-slate-50/50 rounded-xl overflow-hidden flex items-center justify-center p-4 mb-4 transition-transform duration-500 group-hover:scale-[1.03]">
         <Image
           alt={title || "Product image"}
@@ -94,8 +93,8 @@ export function CardProductA({
               {[...Array(5)].map((_, i) => (
                 <Star
                   size={14}
-                  stroke={i < rating ? "#FDC040" : "#D4D4D4"}
-                  fill={i < rating ? "#FDC040" : "#D4D4D4"}
+                  stroke={i < (rating ?? 0) ? "#FDC040" : "#D4D4D4"}
+                  fill={i < (rating ?? 0) ? "#FDC040" : "#D4D4D4"}
                   key={i}
                 />
               ))}
@@ -115,18 +114,29 @@ export function CardProductA({
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
           <div className="flex items-center gap-2 leading-[1.1]">
             <p className="font-bold text-[#014162] text-lg">
-              £ {(final_price && final_price !== 0) ? final_price : (price && price !== 0 ? price : "")}
+              £{" "}
+              {final_price && final_price !== 0
+                ? final_price
+                : price && price !== 0
+                  ? price
+                  : ""}
             </p>
-            {final_price && price && price !== 0 && price !== final_price && !title?.includes("Hot Chocolate") && (
-              <p className="font-medium line-through text-slate-400 text-xs">
-                £ {price}
-              </p>
-            )}
+            {final_price &&
+              price &&
+              price !== 0 &&
+              price !== final_price &&
+              !title?.includes("Hot Chocolate") && (
+                <p className="font-medium line-through text-slate-400 text-xs">
+                  £ {price}
+                </p>
+              )}
           </div>
           <button
             disabled={!in_stock}
             onClick={() => {
-              const parsedPrice = Number((final_price && final_price !== 0) ? final_price : price);
+              const parsedPrice = Number(
+                final_price && final_price !== 0 ? final_price : price,
+              );
               const cartItem = {
                 id: Date.now().toString(),
                 meal: {
@@ -148,9 +158,12 @@ export function CardProductA({
                 { meal_id: link, quantity: 1 },
                 {
                   onError: (err) => {
-                    console.error("Backend error ignored for optimistic UI:", err);
+                    console.error(
+                      "Backend error ignored for optimistic UI:",
+                      err,
+                    );
                   },
-                }
+                },
               );
             }}
             className={`${in_stock ? "cursor-pointer bg-[#083C5A] hover:bg-[#062d44] text-white" : "cursor-not-allowed bg-slate-200 text-slate-400"} flex shrink-0 items-center gap-1.5 justify-center transition-all duration-300 h-9 px-4 relative rounded-lg font-semibold text-sm ${!in_stock ? "opacity-50" : ""}`}
@@ -192,12 +205,11 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
   } = product;
   const [quantity, setQuantity] = useState(1);
 
-  const { mutate , isPending } = useAddToCart();
+  const { mutate, isPending } = useAddToCart();
   const addItem = useCartStore((state) => state.addItem);
 
   return (
     <div className="bg-white rounded-2xl min-h-[426px] p-4 border border-slate-200 hover:shadow-xl transition-all duration-300 group flex flex-col h-full relative">
-
       {/* Badges Container */}
       <div className="flex gap-1.5 items-start">
         {!inStock && (
@@ -235,13 +247,15 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
           </Link>
           <div className="flex flex-col items-end shrink-0">
             <span className="text-xl font-bold text-slate-900">
-              £ {(price && price !== 0) ? price : ""}
+              £ {price && price !== 0 ? price : ""}
             </span>
-            {originalPrice && originalPrice !== 0 && originalPrice !== price && (
-              <span className="text-sm text-slate-400 line-through font-medium">
-                £ {originalPrice}
-              </span>
-            )}
+            {originalPrice &&
+              originalPrice !== 0 &&
+              originalPrice !== price && (
+                <span className="text-sm text-slate-400 line-through font-medium">
+                  £ {originalPrice}
+                </span>
+              )}
           </div>
         </div>
 
@@ -267,7 +281,9 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
           <button
             disabled={!inStock || quantity === 0 || isPending}
             onClick={() => {
-              const parsedPrice = Number((price && price !== 0) ? price : originalPrice);
+              const parsedPrice = Number(
+                price && price !== 0 ? price : originalPrice,
+              );
               const cartItem = {
                 id: Date.now().toString(),
                 meal: {
@@ -290,9 +306,12 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
                 { meal_id: link, quantity: quantity },
                 {
                   onError: (err) => {
-                    console.error("Backend error ignored for optimistic UI:", err);
+                    console.error(
+                      "Backend error ignored for optimistic UI:",
+                      err,
+                    );
                   },
-                }
+                },
               );
             }}
             className={`flex-1 flex items-center justify-center gap-2 h-[44px] rounded-xl shadow-sm transition-all duration-200 ${
@@ -307,7 +326,11 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
               <ShoppingCart size={18} strokeWidth={2.5} />
             )}
             <span className="font-semibold text-sm">
-              {!inStock ? "Out of Stock" : isPending ? "Adding..." : "Add To Cart"}
+              {!inStock
+                ? "Out of Stock"
+                : isPending
+                  ? "Adding..."
+                  : "Add To Cart"}
             </span>
           </button>
 
@@ -331,7 +354,7 @@ export function CardProductC({ product }: { product: CardProductCProps }) {
             </span>
 
             <button
-              disabled={!inStock || quantity >= stock_quantity}
+              disabled={!inStock || quantity >= (stock_quantity ?? 0)}
               onClick={() => {
                 if (inStock) {
                   setQuantity(quantity + 1);

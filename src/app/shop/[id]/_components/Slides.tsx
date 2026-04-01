@@ -8,7 +8,6 @@ import { useMeals } from "@/hooks/meals/useMeals";
 export default function Slides({ category }: any) {
   const { data: meals } = useMeals();
 
-
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -45,36 +44,37 @@ export default function Slides({ category }: any) {
         >
           {meals?.meals
             ?.filter((meal: any) => {
-              const title = meal.title?.toLowerCase() || '';
-              return !title.includes('marwa') && !title.includes('choclate');
+              const title = meal.title?.toLowerCase() || "";
+              return !title.includes("marwa") && !title.includes("choclate");
             })
             ?.sort((a: any, b: any) => {
-              const aIsChocolate = a.title?.toLowerCase().includes('choclate');
-              const bIsChocolate = b.title?.toLowerCase().includes('choclate');
+              const aIsChocolate = a.title?.toLowerCase().includes("choclate");
+              const bIsChocolate = b.title?.toLowerCase().includes("choclate");
               if (aIsChocolate && !bIsChocolate) return 1;
               if (!aIsChocolate && bIsChocolate) return -1;
               return 0;
             })
             ?.map((meal: any) => {
-            return (
-              <div key={meal.id} className="min-w-[calc(25%-1.125rem)] h-full">
-                <CardProductC
-                  product={{
-                    id: meal.id,
-                    link: meal.id,
-                    title: meal.title,
-                    image: meal.image_url,
-                    price: meal.price,
-                    originalPrice: meal.price,
-                    rating: meal.rating,
-                    isNew: meal.is_featured,
-                    discount: meal.has_offer,
-                    inStock: meal.in_stock,
-                  }}
-                />
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={meal.id}
+                  className="min-w-[calc(25%-1.125rem)] h-full"
+                >
+                  <CardProductC
+                    product={{
+                      link: meal.id,
+                      title: meal.title,
+                      image: meal.image_url,
+                      price: meal.price,
+                      originalPrice: meal.price,
+                      rating: meal.rating,
+                      discount: meal.has_offer,
+                      inStock: meal.in_stock,
+                    }}
+                  />
+                </div>
+              );
+            })}
         </div>
 
         {/* Right Arrow - Absolute Positioned */}
@@ -87,4 +87,4 @@ export default function Slides({ category }: any) {
       </div>
     </section>
   );
-};
+}

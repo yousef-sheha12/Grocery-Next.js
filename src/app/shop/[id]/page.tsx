@@ -47,9 +47,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("reviews");
   const [imgSrc, setImgSrc] = useState<string>(noImage.src);
 
-  const proms = useParams().id;
+  const params = useParams();
+  const id = params.id as string;
 
-  const { data: meal, isLoading } = useMealById(proms);
+  const { data: meal, isLoading } = useMealById(id);
 
   const addItem = useCartStore((state) => state.addItem);
   const { mutate: addToCartMutate, isPending } = useAddToCart();
@@ -166,7 +167,9 @@ export default function App() {
                 disabled={(meal?.data?.stock_quantity || 0) < 1 || isPending}
                 onClick={() => {
                   if (meal?.data?.id) {
-                    const parsedPrice = Number(meal.data.final_price || meal.data.price);
+                    const parsedPrice = Number(
+                      meal.data.final_price || meal.data.price,
+                    );
                     const cartItem = {
                       id: Date.now().toString(),
                       meal: {
@@ -189,7 +192,10 @@ export default function App() {
                       { meal_id: meal.data.id, quantity },
                       {
                         onError: (err) => {
-                          console.error("Backend error ignored for optimistic UI:", err);
+                          console.error(
+                            "Backend error ignored for optimistic UI:",
+                            err,
+                          );
                         },
                       },
                     );

@@ -8,11 +8,7 @@ import { addSmartListSchema } from "@/lib/schemas/smartListSchema";
 import { useAddSmartList } from "@/hooks/smartList/useSmartList";
 import { useSearchMeals } from "@/hooks/categories/useCategories";
 
-export default function AddList({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+export default function AddList({ onClose }: { onClose: () => void }) {
   const {
     register,
     handleSubmit,
@@ -74,7 +70,7 @@ export default function AddList({
     });
 
     try {
-      await addSmartList(formData);
+      await addSmartList(formData as any);
       reset();
       setPreview(null);
       onClose();

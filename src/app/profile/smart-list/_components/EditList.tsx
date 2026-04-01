@@ -54,7 +54,7 @@ export default function EditList({ list, onClose }: EditListProps) {
           name: data.name,
           description: data.dis,
           meal_ids: data.meal_ids,
-        },
+        } as any,
       });
       onClose();
     } catch (error) {
