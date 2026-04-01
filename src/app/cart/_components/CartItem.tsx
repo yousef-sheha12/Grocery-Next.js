@@ -1,34 +1,47 @@
 "use client";
 import { Trash2, Minus, Plus } from "lucide-react";
+import toast from "react-hot-toast";
 import Image from "next/image";
 import noImage from "@/assets/no-image.jpg";
-import { useUpdateCart, useDeleteFromCart } from "@/hooks/cart/useCart";
+import { useCartStore } from "@/lib/cartStore";
+import { useDeleteFromCart } from "@/hooks/cart/useCart";
 
-export default function CartItem({ product }: any) {
-  const { mutate: updateCart, isPending: isUpdating } = useUpdateCart();
+interface CartItemProps {
+  product: any;
+}
+
+export default function CartItem({ product }: CartItemProps) {
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
   const { mutate: deleteCartItem, isPending: isDeleting } = useDeleteFromCart();
 
   const increment = () => {
-    if (product?.meal?.id) {
-      updateCart({ mealId: String(product.meal.id), quantity: product.quantity + 1 });
+    console.log("Increment meal ID:", product?.meal?.id);
+    const newQuantity = product.quantity + 1;
+    if ((product?.meal?.stock_quantity ?? 100) >= newQuantity) {
+      updateQuantity(product.meal.id, newQuantity);
     }
   };
 
   const decrement = () => {
-    if (product?.meal?.id && product.quantity > 1) {
-      updateCart({ mealId: String(product.meal.id), quantity: product.quantity - 1 });
-    }
-  };
-
-  const handleDelete = () => {
-    if (product?.meal?.id) {
+    console.log("Decrement meal ID:", product?.meal?.id);
+    if (product.quantity > 1) {
+      updateQuantity(product.meal.id, product.quantity - 1);
+    } else {
+      // Delete item when quantity = 1
+      removeItem(product.meal.id);
       deleteCartItem(String(product.meal.id));
     }
   };
 
+  const handleDelete = () => {
+    console.log("Delete meal ID:", product?.meal?.id);
+    removeItem(product.meal.id);
+    toast.success("Item removed from cart");
+  };
+
   return (
     <div className="group grid grid-cols-1 sm:grid-cols-12 gap-4 items-center p-4 sm:p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
-      {/* Product Image & Info */}
       <div className="sm:col-span-6 flex items-center gap-4">
         <div className="relative h-24 w-24 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50 overflow-hidden shrink-0 flex items-center justify-center p-2">
           <Image
@@ -60,22 +73,19 @@ export default function CartItem({ product }: any) {
         </div>
       </div>
 
-      {/* Quantity & Actions */}
       <div className="sm:col-span-3 flex flex-col items-center justify-between sm:justify-center mt-2 sm:mt-0">
         <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm h-9">
           <button
             onClick={decrement}
-            disabled={isUpdating || product?.quantity <= 1}
             className="flex items-center justify-center w-8 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-l-lg h-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Minus size={14} />
           </button>
           <span className="w-8 text-center text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {product?.quantity}
+            {product.quantity}
           </span>
           <button
             onClick={increment}
-            disabled={isUpdating || product?.quantity == 10}
             className="flex items-center justify-center w-8 text-zinc-500 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-r-lg h-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus size={14} />
@@ -83,7 +93,6 @@ export default function CartItem({ product }: any) {
         </div>
       </div>
 
-      {/* Total & Delete */}
       <div className="sm:col-span-3 flex items-center justify-between sm:justify-end gap-4 mt-2 sm:mt-0">
         <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100 hidden sm:block">
           £ {product?.subtotal.toFixed(2)}

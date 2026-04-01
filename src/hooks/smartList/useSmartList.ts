@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { SmartList } from "@/lib/types";
 
 // all smart list
 async function getAllSmartLists() {
@@ -19,10 +20,10 @@ async function getSmartListById(id: string) {
 }
 
 // add smart list
-async function addSmartList(smartList: any) {
+async function addSmartList(smartList: Partial<SmartList>) {
   const res = await fetch("/api/smart-lists", {
     method: "POST",
-    body: smartList,
+    body: JSON.stringify(smartList),
   });
 
   if (!res.ok) throw new Error("Failed to add smart list");
@@ -30,8 +31,7 @@ async function addSmartList(smartList: any) {
   return newSmartList;
 }
 
-// update smart list
-async function updateSmartList(id: string, smartList: any) {
+async function updateSmartList(id: string, smartList: Partial<SmartList>) {
   const res = await fetch(`/api/smart-lists/${id}`, {
     method: "PUT",
     headers: {
@@ -91,7 +91,7 @@ export function useAddSmartList() {
 export function useUpdateSmartList() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<SmartList> }) =>
       updateSmartList(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["smart-lists"] });

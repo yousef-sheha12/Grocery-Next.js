@@ -4,7 +4,9 @@ import { useRef } from "react";
 import { CardProductC } from "@/components/common/CardProduct";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
-export default function SlideProduct({ meals }: any) {
+import { Meal } from "@/lib/types";
+
+export default function SlideProduct({ meals }: { meals: { meals: Meal[] } }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -17,12 +19,11 @@ export default function SlideProduct({ meals }: any) {
     }
   };
 
-  // Filter meals and count them, sort chocolate items last
-  const filteredMeals = meals?.meals?.filter((meal: any) =>
+  const filteredMeals = meals?.meals?.filter((meal: Meal) =>
     !meal?.title?.toLowerCase().includes("marwa") &&
     !meal?.brand?.toLowerCase().includes("marwa") &&
     !meal?.vendor?.toLowerCase().includes("marwa")
-  ).sort((a: any, b: any) => {
+  ).sort((a: Meal, b: Meal) => {
     const aIsChocolate = a?.title?.toLowerCase().includes("choclate") || a?.title?.toLowerCase().includes("chocolate");
     const bIsChocolate = b?.title?.toLowerCase().includes("choclate") || b?.title?.toLowerCase().includes("chocolate");
     if (aIsChocolate && !bIsChocolate) return 1;
@@ -50,9 +51,9 @@ export default function SlideProduct({ meals }: any) {
           ref={scrollContainerRef}
           className="flex gap-6 overflow-x-auto pb-8 -mx-4 px-4 scrollbar-hide scroll-smooth"
         >
-          {filteredMeals.map((meal: any) => {
+          {filteredMeals.map((meal: Meal) => {
             const discount =
-              ((meal.price - meal.discount_price) / meal.price) * 100;
+              ((meal.price - (meal.discount_price || 0)) / meal.price) * 100;
             return (
               <div key={meal.id} className="min-w-full sm:min-w-[304px] h-full">
                 <CardProductC

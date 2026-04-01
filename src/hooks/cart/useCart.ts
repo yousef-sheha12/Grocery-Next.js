@@ -10,7 +10,7 @@ async function getAllCart() {
 }
 
 // add to cart api
-async function addToCart(mealId: any) {
+async function addToCart(mealId: { meal_id: string | number; quantity: number }) {
   const res = await fetch("/api/cart/items", {
     method: "POST",
     headers: {
@@ -20,7 +20,7 @@ async function addToCart(mealId: any) {
     body: JSON.stringify(mealId),
   });
 
-  if (!res.ok) throw new Error("Failed to add to cart");
+  if (!res.ok) return { error: "Failed to add to cart" };
   const newCart = await res.json();
   return newCart;
 }

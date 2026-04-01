@@ -1,7 +1,15 @@
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { useCartStore } from "@/lib/cartStore";
 
-export default function CartSummary( {priceData}: any) {
+export default function CartSummary() {
+  const totals = useCartStore((state) => state.totals);
+  const items = useCartStore((state) => state.items);
+
+  const subtotal = totals?.subtotal || 0;
+  const shipping = items?.length > 0 ? 25 : 0;
+  const tax = totals?.tax || 0;
+  const orderTotal = subtotal + shipping + tax;
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
       <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -12,21 +20,21 @@ export default function CartSummary( {priceData}: any) {
         <div className="flex justify-between text-[#014162]">
           <span>Subtotal</span>
           <span className="font-medium text-[#014162 ]">
-            £ {Number(priceData?.subtotal || 0).toFixed(2)}
+            £ {Number(subtotal).toFixed(2)}
           </span>
         </div>
 
         <div className="flex justify-between text-[#014162]">
           <span>Shipping estimate</span>
           <span className="font-medium text-[#014162 ]">
-            £ {((priceData?.items?.length || 0) > 0 ? 25 : 0).toFixed(2)}
+            £ {Number(shipping).toFixed(2)}
           </span>
         </div>
 
         <div className="flex justify-between text-[#014162]">
           <span>Tax estimate</span>
           <span className="font-medium text-[#014162 ]">
-            £ {Number(priceData?.tax || 0).toFixed(2)}
+            £ {Number(tax).toFixed(2)}
           </span>
         </div>
 
@@ -36,7 +44,7 @@ export default function CartSummary( {priceData}: any) {
               Order Total
             </span>
             <span className="text-2xl font-bold text-[#014162]">
-              £ {((priceData?.subtotal || 0) + ((priceData?.items?.length || 0) > 0 ? 25 : 0) + (priceData?.tax || 0)).toFixed(2)}
+              £ {Number(orderTotal).toFixed(2)}
             </span>
           </div>
         </div>

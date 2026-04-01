@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { NotificationSettings } from "@/lib/types";
 
 // Fetch notification settings data from API
 async function fetchNotificationSetting() {
@@ -18,8 +19,7 @@ export function useNotificationSettings() {
   });
 }
 
-// Update notification settings data to API
-async function UpdateNotificationSettings(data: any) {
+async function UpdateNotificationSettings(data: Partial<NotificationSettings>) {
   const res = await fetch("/api/notifications_settings", {
     method: "PUT",
     body: JSON.stringify(data),

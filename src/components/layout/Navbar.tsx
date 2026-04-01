@@ -9,12 +9,14 @@ import {
 import Link from "next/link";
 import Container from "../common/Container";
 import { useAllCart } from "@/hooks/cart/useCart";
+import { useCartStore } from "@/lib/cartStore";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { useCategories } from "@/hooks/categories/useCategories";
 
 export default function Nav() {
   const { data } = useAllCart();
+  const cartItems = useCartStore((state) => state.items);
   const router = useRouter();
   const { data: categoriesData } = useCategories();
 
@@ -159,7 +161,7 @@ export default function Nav() {
           <div className="relative">
             <ShoppingCart className="text-gray-400 group-hover:text-[#014162] transition-colors size-6" />
             <span className="absolute -top-1.5 -right-1.5 bg-[#014162] text-white text-[10px] font-bold rounded-full size-4.5 flex justify-center items-center ring-2 ring-white">
-              {data?.cart.items.length}
+              {cartItems?.length || 0}
             </span>
           </div>
           <p className="hidden sm:block">My Cart</p>

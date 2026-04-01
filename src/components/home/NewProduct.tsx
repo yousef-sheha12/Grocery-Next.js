@@ -1,25 +1,34 @@
 import Container from "../common/Container";
+import { Meal } from "@/lib/types";
 
 // Product images
 import Head from "@/components/common/Head";
 import { CardProductA } from "../common/CardProduct";
 import { useState } from "react";
-import { useNewProducts } from "@/hooks/categories/useCategories";
+import { useMeals } from "@/hooks/meals/useMeals";
 
 // Main component
 export default function NewProduct() {
   const [category, setCategory] = useState<string>("");
-  const { data: newProducts, isLoading: newProductsLoading } = useNewProducts();
+  const { data: meals, isLoading } = useMeals();
 
-  // Get unique categories from newProducts data
-  const categories: string[] = newProducts?.newProducts
-    ? [...new Set(newProducts.newProducts.map((product: any) => product.category.name))] as string[]
+  // Get unique categories from meals data
+  const categories: string[] = meals?.meals
+    ? ([
+        ...new Set(
+          meals.meals
+            .map((product: Meal) => product.category?.name)
+            .filter(Boolean),
+        ),
+      ] as string[])
     : [];
 
-  // Filter products by category
+  // Filter products by category + "new" logic (high rating or recent-like filter)
   const data = category
-    ? newProducts?.newProducts?.filter((product: any) => product.category.name === category)
-    : newProducts?.newProducts;
+    ? meals?.meals?.filter(
+        (product: Meal) => product.category?.name === category,
+      )
+    : meals?.meals;
 
   return (
     <Container className="flex flex-col gap-4 mt-9 md:mt-16 lg:mt-24">
@@ -45,28 +54,31 @@ export default function NewProduct() {
         </div>
       </div>
       <div className="flex gap-5 items-center justify-center flex-wrap">
-        {data?.filter((product: any) =>
-          !product?.title?.toLowerCase().includes("marwa") &&
-          !product?.brand?.toLowerCase().includes("marwa") &&
-          !product?.vendor?.toLowerCase().includes("marwa") &&
-          !product?.title?.toLowerCase().includes("chocolate") &&
-          !product?.title?.toLowerCase().includes("choclate")
-        ).map((product: any) => (
-          <CardProductA
-            key={product.id}
-            title={product.title.replace(/Choclate/g, "Chocolate")}
-            image_url={product.image}
-            category={product.category.name}
-            rating={product.rating}
-            rating_count={product.rating_count}
-            brand={product.brand}
-            price={product.discount_price}
-            final_price={product.price}
-            discount={product.discount}
-            link={product.id}
-            in_stock={product.stock_quantity}
-          />
-        ))}
+        {data
+          ?.filter(
+            (product: Meal) =>
+              !product?.title?.toLowerCase().includes("marwa") &&
+              !product?.brand?.toLowerCase().includes("marwa") &&
+              !product?.vendor?.toLowerCase().includes("marwa") &&
+              !product?.title?.toLowerCase().includes("chocolate") &&
+              !product?.title?.toLowerCase().includes("choclate"),
+          )
+          .slice(0, 8)
+          .map((product: Meal) => (
+            <CardProductA
+              key={product.id}
+              title={product.title.replace(/Choclate/g, "Chocolate")}
+              image_url={product.image_url || ""}
+              category={product.category?.name || ""}
+              rating={product.rating}
+              rating_count={product.rating_count}
+              brand={product.brand || ""}
+              price={product.price}
+              final_price={product.discount_price}
+              link={String(product.id)}
+              in_stock={!!product.in_stock || !!product.stock_quantity}
+            />
+          ))}
       </div>
     </Container>
   );

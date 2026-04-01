@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Address } from "@/lib/types";
 
 // all addresses
 async function getAllAddresses() {
@@ -19,7 +20,7 @@ async function getAddressById(id: string) {
 }
 
 // add address
-async function addAddress(address: any) {
+async function addAddress(address: Partial<Address>) {
   const res = await fetch("/api/addresses", {
     method: "POST",
     headers: {
@@ -34,7 +35,7 @@ async function addAddress(address: any) {
 }
 
 // update address
-async function updateAddress(id: string, address: any) {
+async function updateAddress(id: string, address: Partial<Address>) {
   const res = await fetch(`/api/addresses/${id}`, {
     method: "PUT",
     headers: {
@@ -105,7 +106,7 @@ export function useAddAddress() {
 export function useUpdateAddress() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Address> }) =>
       updateAddress(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });

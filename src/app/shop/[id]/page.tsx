@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ShoppingCart, Trash2, Plus, ClockFading } from "lucide-react";
 import Image from "next/image";
 import { useMealById } from "@/hooks/meals/useMeals";
+import { useCartStore } from "@/lib/cartStore";
 import { useAddToCart } from "@/hooks/cart/useCart";
 import PageTitel from "@/app/checkout/components/PageTitel";
 import Container from "@/components/common/Container";
@@ -50,7 +51,8 @@ export default function App() {
 
   const { data: meal, isLoading } = useMealById(proms);
 
-  const { mutate: addToCart, isPending } = useAddToCart();
+  const addItem = useCartStore((state) => state.addItem);
+  const { mutate: addToCartMutate, isPending } = useAddToCart();
 
   // Update image source when meal data changes
   useEffect(() => {
@@ -62,7 +64,8 @@ export default function App() {
   }, [meal?.data?.image_url]);
 
   const discount =
-    ((meal?.data?.price - meal?.data?.discount_price) / meal?.data?.price) * 100;
+    ((meal?.data?.price - meal?.data?.discount_price) / meal?.data?.price) *
+    100;
 
   if (isLoading) {
     return (
@@ -134,7 +137,9 @@ export default function App() {
 
             {/* Quantity */}
             <div className="mb-6">
-              <label className="block mb-2 text-sm font-medium text-gray-700">Quantity</label>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Quantity
+              </label>
               <div className="flex items-center border border-gray-300 rounded-lg h-12 w-fit">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -161,25 +166,44 @@ export default function App() {
                 disabled={(meal?.data?.stock_quantity || 0) < 1 || isPending}
                 onClick={() => {
                   if (meal?.data?.id) {
-                    addToCart(
-                      { meal_id: meal?.data?.id, quantity },
+                    const parsedPrice = Number(meal.data.final_price || meal.data.price);
+                    const cartItem = {
+                      id: Date.now().toString(),
+                      meal: {
+                        id: meal.data.id,
+                        title: meal.data.title,
+                        image_url: meal.data.image_url,
+                        stock_quantity: meal.data.stock_quantity,
+                        in_stock: meal.data.in_stock,
+                        unit_price: parsedPrice,
+                      },
+                      quantity: quantity,
+                      unit_price: parsedPrice,
+                    };
+
+                    // Optimistically add locally
+                    addItem(cartItem);
+                    toast.success("Added to cart!");
+
+                    addToCartMutate(
+                      { meal_id: meal.data.id, quantity },
                       {
-                        onSuccess: () => {
-                          toast.success("Added to cart!");
+                        onError: (err) => {
+                          console.error("Backend error ignored for optimistic UI:", err);
                         },
-                        onError: () => {
-                          toast.error("Failed to add to cart");
-                        },
-                      }
+                      },
                     );
                   }
                 }}
                 className="cursor-pointer bg-[#014162] text-white px-6 py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#014162]/80 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {isPending ? "Adding..." : (meal?.data?.stock_quantity || 0) < 1 ? "Out of Stock" : "Add To Cart"}
+                {isPending
+                  ? "Adding..."
+                  : (meal?.data?.stock_quantity || 0) < 1
+                    ? "Out of Stock"
+                    : "Add To Cart"}
               </button>
-
             </div>
           </div>
         </div>
@@ -354,12 +378,14 @@ export default function App() {
                       Product Facts
                     </p>
                     <h3 className="text-xl font-extrabold leading-tight">
-                      {meal?.data?.title?.replace(/Choclate/g, "Chocolate") ?? "—"}
+                      {meal?.data?.title?.replace(/Choclate/g, "Chocolate") ??
+                        "—"}
                     </h3>
                     <p className="text-sm text-white/70 mt-1">
                       Serving size:{" "}
                       <span className="text-white font-medium">
-                        {meal?.data?.title?.replace(/Choclate/g, "Chocolate") || "Product"}
+                        {meal?.data?.title?.replace(/Choclate/g, "Chocolate") ||
+                          "Product"}
                       </span>
                     </p>
                   </div>

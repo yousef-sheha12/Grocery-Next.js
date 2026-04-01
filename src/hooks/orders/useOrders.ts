@@ -1,4 +1,5 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Order } from "@/lib/types";
 
 // all orders api
 async function getAllOrders() {
@@ -9,7 +10,7 @@ async function getAllOrders() {
   return orders;
 }
 // add order api
-async function addOrder(order: any) {
+async function addOrder(order: Partial<Order>) {
   const res = await fetch("/api/order", {
     method: "POST",
     headers: {

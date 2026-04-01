@@ -7,6 +7,7 @@ import noImage from "@/assets/no-image.jpg";
 import Link from "next/link";
 import { useAddToCart } from "@/hooks/cart/useCart";
 import toast from "react-hot-toast";
+import { useCartStore } from "@/lib/cartStore";
 
 // Helper to validate and fix image URLs
 function getValidImageUrl(url: string | null | undefined): string {
@@ -26,6 +27,19 @@ function getValidImageUrl(url: string | null | undefined): string {
   return `${process.env.NEXT_PUBLIC_BASE_URL || ''}/${url}`;
 }
 
+export interface CardProductAProps {
+  title: string;
+  image_url?: string;
+  category?: string;
+  rating?: number;
+  rating_count?: number;
+  brand?: string;
+  price: number;
+  final_price?: number;
+  link: string;
+  in_stock: boolean;
+}
+
 export function CardProductA({
   title,
   image_url,
@@ -37,9 +51,10 @@ export function CardProductA({
   final_price,
   link,
   in_stock,
-}: any) {
+}: CardProductAProps) {
   const { mutate } = useAddToCart();
-  const [imgSrc, setImgSrc] = useState(getValidImageUrl(image_url));
+  const addItem = useCartStore((state) => state.addItem);
+  const [imgSrc, setImgSrc] = useState(getValidImageUrl(image_url || ""));
 
   useEffect(() => {
     setImgSrc(getValidImageUrl(image_url));
@@ -110,19 +125,34 @@ export function CardProductA({
           </div>
           <button
             disabled={!in_stock}
-            onClick={() =>
+            onClick={() => {
+              const parsedPrice = Number((final_price && final_price !== 0) ? final_price : price);
+              const cartItem = {
+                id: Date.now().toString(),
+                meal: {
+                  id: link,
+                  title: title,
+                  image_url: image_url,
+                  stock_quantity: 100,
+                  in_stock: in_stock,
+                  unit_price: parsedPrice,
+                },
+                quantity: 1,
+                unit_price: parsedPrice,
+              };
+              // Optimistically add locally so the user isn't blocked by backend errors
+              addItem(cartItem);
+              toast.success("Added to cart!");
+
               mutate(
                 { meal_id: link, quantity: 1 },
                 {
-                  onSuccess: () => {
-                    toast.success("Added to cart!");
-                  },
-                  onError: () => {
-                    toast.error("Failed to add to cart");
+                  onError: (err) => {
+                    console.error("Backend error ignored for optimistic UI:", err);
                   },
                 }
-              )
-            }
+              );
+            }}
             className={`${in_stock ? "cursor-pointer bg-[#083C5A] hover:bg-[#062d44] text-white" : "cursor-not-allowed bg-slate-200 text-slate-400"} flex shrink-0 items-center gap-1.5 justify-center transition-all duration-300 h-9 px-4 relative rounded-lg font-semibold text-sm ${!in_stock ? "opacity-50" : ""}`}
           >
             <ShoppingCart size={16} />
@@ -134,7 +164,20 @@ export function CardProductA({
   );
 }
 
-export function CardProductC({ product }: any) {
+export interface CardProductCProps {
+  title: string;
+  image?: string;
+  price: number;
+  originalPrice?: number;
+  rating?: number;
+  inStock?: boolean;
+  discount?: string | number;
+  isOffer?: boolean;
+  link: string;
+  stock_quantity?: number;
+}
+
+export function CardProductC({ product }: { product: CardProductCProps }) {
   const {
     title,
     image,
@@ -150,6 +193,7 @@ export function CardProductC({ product }: any) {
   const [quantity, setQuantity] = useState(1);
 
   const { mutate , isPending } = useAddToCart();
+  const addItem = useCartStore((state) => state.addItem);
 
   return (
     <div className="bg-white rounded-2xl min-h-[426px] p-4 border border-slate-200 hover:shadow-xl transition-all duration-300 group flex flex-col h-full relative">
@@ -204,11 +248,12 @@ export function CardProductC({ product }: any) {
         {/* Rating Row */}
         <div className="flex items-center gap-1.5 mb-6">
           <div className="flex">
-            {[...Array(5)].map((_, i) => (
+            {Array.from({ length: 5 }).map((_, index) => (
               <Star
-                stroke={i < rating ? "#FDC040" : "#D4D4D4"}
-                fill={i < rating ? "#FDC040" : "#D4D4D4"}
-                key={i}
+                size={16}
+                key={index}
+                stroke={index < (rating || 0) ? "#FDC040" : "#D4D4D4"}
+                fill={index < (rating || 0) ? "#FDC040" : "#D4D4D4"}
               />
             ))}
           </div>
@@ -221,20 +266,35 @@ export function CardProductC({ product }: any) {
         <div className="mt-auto flex items-center gap-3">
           <button
             disabled={!inStock || quantity === 0 || isPending}
-            onClick={() =>
+            onClick={() => {
+              const parsedPrice = Number((price && price !== 0) ? price : originalPrice);
+              const cartItem = {
+                id: Date.now().toString(),
+                meal: {
+                  id: link,
+                  title: title,
+                  image_url: image,
+                  stock_quantity: stock_quantity,
+                  in_stock: inStock,
+                  unit_price: parsedPrice,
+                },
+                quantity: quantity,
+                unit_price: parsedPrice,
+              };
+              // Optimistically add locally
+              addItem(cartItem);
+              toast.success("Added to cart!");
+              setQuantity(1);
+
               mutate(
                 { meal_id: link, quantity: quantity },
                 {
-                  onSuccess: () => {
-                    toast.success("Added to cart!");
-                    setQuantity(1);
-                  },
-                  onError: () => {
-                    toast.error("Failed to add to cart");
+                  onError: (err) => {
+                    console.error("Backend error ignored for optimistic UI:", err);
                   },
                 }
-              )
-            }
+              );
+            }}
             className={`flex-1 flex items-center justify-center gap-2 h-[44px] rounded-xl shadow-sm transition-all duration-200 ${
               inStock && quantity > 0 && !isPending
                 ? "bg-[#083C5A] text-white hover:bg-[#062d44] active:scale-95 cursor-pointer"

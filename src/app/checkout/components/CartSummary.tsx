@@ -1,9 +1,21 @@
 "use client";
 import Image from "next/image";
 import { Trash2, Plus, Minus } from "lucide-react";
-import { useAllCart, useUpdateCart, useDeleteFromCart } from "@/hooks/cart/useCart";
-import { CartItem } from "@/hooks/use-cart";
+import { useCartStore } from "@/lib/cartStore";
+import { useDeleteFromCart } from "@/hooks/cart/useCart";
 import CartSummarySkeleton from "./CartSummarySkeleton";
+
+type CartItemType = {
+  id: string;
+  meal: {
+    id: string;
+    title: string;
+    image_url: string;
+    stock_quantity?: number;
+  };
+  quantity: number;
+  unit_price: number;
+};
 
 type CartSummaryProps = {
   quantity: number;
@@ -11,20 +23,21 @@ type CartSummaryProps = {
   readOnly?: boolean;
 };
 
-export default function CartSummary({ quantity, totalH, readOnly = false }: CartSummaryProps) {
-  const { data, isLoading, isError } = useAllCart();
-  const { mutate: updateCart, isPending: isUpdating } = useUpdateCart();
-  const { mutate: deleteCartItem, isPending: isDeleting } = useDeleteFromCart();
+export default function CartSummary({
+  quantity,
+  totalH,
+  readOnly = false,
+}: CartSummaryProps) {
+  const items = useCartStore((state) => state.items);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const totals = useCartStore((state) => state.totals);
 
-  if (isLoading) return <CartSummarySkeleton />;
-  if (isError) return <p>Error loading cart</p>;
+  const safeItems: CartItemType[] = items as CartItemType[];
+  const subtotal = totals.subtotal.toString();
+  const total = totals.total.toString();
 
-  const safeItems: CartItem[] = Array.isArray(data?.cart?.items)
-    ? data.cart.items
-    : [];
-
-  const subtotal = data?.cart?.subtotal || "0";
-  const total = data?.cart?.total || "0";
+  if (safeItems.length === 0) return <p>Your cart is empty</p>;
 
   return (
     <div className="w-full lg:w-[500px]">
@@ -59,7 +72,9 @@ export default function CartSummary({ quantity, totalH, readOnly = false }: Cart
 
               {/* Details */}
               <div className="flex-1">
-                <p className={`font-normal ${readOnly ? 'text-lg lg:text-xl' : 'text-base lg:text-lg'}`}>
+                <p
+                  className={`font-normal ${readOnly ? "text-lg lg:text-xl" : "text-base lg:text-lg"}`}
+                >
                   {item.meal.title}
                 </p>
 
@@ -73,20 +88,20 @@ export default function CartSummary({ quantity, totalH, readOnly = false }: Cart
                     <div className="flex items-center border border-gray-200 gap-2 px-2 py-1 rounded-xl">
                       <button
                         type="button"
-                        disabled={isUpdating || isDeleting}
                         onClick={() => {
                           if (item.quantity > 1) {
-                            updateCart({ mealId: String(item.meal.id), quantity: item.quantity - 1 });
+                            updateQuantity(item.meal.id, item.quantity - 1);
                           } else {
-                            deleteCartItem(String(item.meal.id));
+                            removeItem(item.meal.id);
                           }
                         }}
                         className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-40 cursor-pointer"
                       >
-                        {item.quantity === 1
-                          ? <Trash2 className="w-4 h-4 text-red-500" />
-                          : <Minus className="w-4 h-4" />
-                        }
+                        {item.quantity === 1 ? (
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        ) : (
+                          <Minus className="w-4 h-4" />
+                        )}
                       </button>
 
                       <p className="font-normal text-sm sm:text-base min-w-[20px] text-center">
@@ -95,9 +110,13 @@ export default function CartSummary({ quantity, totalH, readOnly = false }: Cart
 
                       <button
                         type="button"
-                        disabled={isUpdating || isDeleting}
                         onClick={() => {
-                          updateCart({ mealId: String(item.meal.id), quantity: item.quantity + 1 });
+                          const newQuantity = item.quantity + 1;
+                          if (
+                            (item?.meal?.stock_quantity ?? 100) >= newQuantity
+                          ) {
+                            updateQuantity(item.meal.id, newQuantity);
+                          }
                         }}
                         className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-40 cursor-pointer"
                       >
@@ -132,19 +151,34 @@ export default function CartSummary({ quantity, totalH, readOnly = false }: Cart
               </div>
 
               <div className="flex justify-between">
-                <p className="text-[#6B6F75] text-sm lg:text-lg">Shipping estimate</p>
-                <p className="text-[#6B6F75] text-sm lg:text-lg">£ {(safeItems.length > 0 ? 25 : 0).toFixed(2)}</p>
+                <p className="text-[#6B6F75] text-sm lg:text-lg">
+                  Shipping estimate
+                </p>
+                <p className="text-[#6B6F75] text-sm lg:text-lg">
+                  £ {(safeItems.length > 0 ? 25 : 0).toFixed(2)}
+                </p>
               </div>
 
               <div className="flex justify-between">
-                <p className="text-[#6B6F75] text-sm lg:text-lg">Tax estimate</p>
-                <p className="text-[#6B6F75] text-sm lg:text-lg">£ {Number(data?.cart?.tax || 0).toFixed(2)}</p>
+                <p className="text-[#6B6F75] text-sm lg:text-lg">
+                  Tax estimate
+                </p>
+                <p className="text-[#6B6F75] text-sm lg:text-lg">
+                  £ {Number(totals.tax || 0).toFixed(2)}
+                </p>
               </div>
             </div>
 
             <div className="flex justify-between pt-3">
               <p className="font-medium text-base lg:text-lg">Order Total</p>
-              <p className="text-base lg:text-lg font-normal">£ {(Number(subtotal) + (safeItems.length > 0 ? 25 : 0) + (data?.cart?.tax ? Number(data.cart.tax) : 0)).toFixed(2)}</p>
+              <p className="text-base lg:text-lg font-normal">
+                £{" "}
+                {(
+                  Number(subtotal) +
+                  (safeItems.length > 0 ? 25 : 0) +
+                  Number(totals.tax || 0)
+                ).toFixed(2)}
+              </p>
             </div>
           </div>
         </div>

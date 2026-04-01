@@ -31,9 +31,9 @@ export function useMeals() {
 }
 
 // get meal by id hook
-export function useMealById(id: any) {
+export function useMealById(id: string | number) {
   return useQuery({
     queryKey: ["meal", id],
-    queryFn: () => getMealById(id),
+    queryFn: () => getMealById(String(id)),
   });
 }

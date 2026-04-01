@@ -8,6 +8,7 @@ import { CardProductA } from "../common/CardProduct";
 import { useState } from "react";
 import { useMeals } from "@/hooks/meals/useMeals";
 import Link from "next/link";
+import { Meal } from "@/lib/types";
 
 // Product type definition
 type Product = {
@@ -30,12 +31,12 @@ export default function HotDeal() {
 
   // Get unique categories from meals data
   const categories: string[] = meals?.meals
-    ? [...new Set(meals.meals.map((meal: any) => meal.category.name))] as string[]
+    ? [...new Set(meals.meals.map((meal: Meal) => meal.category?.name).filter(Boolean))] as string[]
     : [];
 
   // Filter meals by category
   const data = category
-    ? meals?.meals?.filter((meal: any) => meal.category.name === category)
+    ? meals?.meals?.filter((meal: Meal) => meal.category?.name === category)
     : meals?.meals;
 
   return (
@@ -65,17 +66,17 @@ export default function HotDeal() {
         {isLoading ? (
           <p>Loading...</p>
         ) : (
-          data?.filter((meal: any) =>
+          data?.filter((meal: Meal) =>
             !meal?.title?.toLowerCase().includes("marwa") &&
             !meal?.brand?.toLowerCase().includes("marwa") &&
             !meal?.vendor?.toLowerCase().includes("marwa")
-          ).sort((a: any, b: any) => {
+          ).sort((a: Meal, b: Meal) => {
             const aIsChocolate = a?.title?.toLowerCase().includes("choclate") || a?.title?.toLowerCase().includes("chocolate");
             const bIsChocolate = b?.title?.toLowerCase().includes("choclate") || b?.title?.toLowerCase().includes("chocolate");
             if (aIsChocolate && !bIsChocolate) return 1;
             if (!aIsChocolate && bIsChocolate) return -1;
             return 0;
-          }).map((meal: any, index: number) => (
+          }).map((meal: Meal, index: number) => (
               <CardProductA
                 key={index}
                 title={meal.title.replace(/Choclate/g, "Chocolate")}
@@ -86,9 +87,8 @@ export default function HotDeal() {
                 brand={meal.brand}
                 price={meal.price}
                 final_price={meal.final_price}
-                discount={meal.discount}
-                link={meal.id}
-                in_stock={meal.in_stock}
+                link={meal.id as string}
+                in_stock={meal.in_stock as boolean}
               />
           ))
         )}
